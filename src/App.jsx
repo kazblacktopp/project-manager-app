@@ -17,6 +17,15 @@ export default function App() {
 		});
 	}
 
+	function handleCancelNewProject() {
+		setProjectData(prevProjectData => {
+			return {
+				...prevProjectData,
+				selectedProjectId: undefined,
+			};
+		});
+	}
+
 	const newProjectInputRef = useRef(null);
 
 	function handleNewProjectSubmit() {
@@ -30,6 +39,7 @@ export default function App() {
 			<NewProject
 				ref={newProjectInputRef}
 				onProjectSave={handleNewProjectSubmit}
+				onCancel={handleCancelNewProject}
 			/>
 		);
 	}

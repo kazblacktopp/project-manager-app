@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react';
 
 import Input from './Input';
 
-const NewProject = forwardRef(({ onProjectSave }, ref) => {
+const NewProject = forwardRef(({ onProjectSave, onCancel }, ref) => {
 	const titleRef = useRef(null);
 	const descriptionRef = useRef(null);
 	const dateRef = useRef(null);
@@ -29,7 +29,11 @@ const NewProject = forwardRef(({ onProjectSave }, ref) => {
 		<form className="w-[35rem] mt-16">
 			<menu className="flex items-center justify-end gap-4 my-4">
 				<li>
-					<button className="text-stone-800 hover:text-stone-950">
+					<button
+						type="button"
+						onClick={onCancel}
+						className="text-stone-800 hover:text-stone-950"
+					>
 						Cancel
 					</button>
 				</li>
