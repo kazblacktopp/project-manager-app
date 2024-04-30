@@ -37,6 +37,10 @@ export default function App() {
 		});
 	}
 
+	function handleProjectSelection(selectedProject) {
+		alert(`You selected project: ${selectedProject.title}`);
+	}
+
 	function handleAddNewProject() {
 		setProjectData(prevProjectData => {
 			return {
@@ -86,9 +90,15 @@ export default function App() {
 
 	return (
 		<main className="h-screen my-8 flex gap-8">
-			<ProjectsSidebar onAddProject={handleAddNewProject} />
+			<ProjectsSidebar
+				projects={projectData.projects}
+				onAddProject={handleAddNewProject}
+				onSelectProject={handleProjectSelection}
+			/>
 			{content}
-			{!valueIsValid && <p>The input is NOT valid!</p>}
+			{!valueIsValid && (
+				<p className="text-red-600">The input is NOT valid!</p>
+			)}
 		</main>
 	);
 }
