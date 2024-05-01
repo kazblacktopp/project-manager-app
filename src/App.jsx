@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import NoProjectSelected from './components/NoProjectSelected';
 import ProjectsSidebar from './components/ProjectsSidebar';
 import NewProject from './components/NewProject';
+import Tasks from './components/Tasks';
 
 export default function App() {
 	const [projectData, setProjectData] = useState({
@@ -38,7 +39,12 @@ export default function App() {
 	}
 
 	function handleProjectSelection(selectedProject) {
-		alert(`You selected project: ${selectedProject.title}`);
+		setProjectData(prevProjectData => {
+			return {
+				...prevProjectData,
+				selectedProjectId: selectedProject.title,
+			};
+		});
 	}
 
 	function handleAddNewProject() {
@@ -50,7 +56,7 @@ export default function App() {
 		});
 	}
 
-	function handleCancelNewProject() {
+	function handleCancelProject() {
 		setProjectData(prevProjectData => {
 			return {
 				...prevProjectData,
@@ -58,6 +64,22 @@ export default function App() {
 			};
 		});
 		setValueIsValid(true);
+	}
+
+	function handleDeleteProject(projectId) {
+		// Todo: Add delect confirmation check (modal)
+
+		const updatedProjects = projectData.projects.filter(
+			project => project.title != projectId,
+		);
+
+		setProjectData(prevProjectData => {
+			return {
+				...prevProjectData,
+				selectedProjectId: undefined,
+				projects: updatedProjects,
+			};
+		});
 	}
 
 	function validateValueIsValid(values) {
@@ -72,14 +94,24 @@ export default function App() {
 		return isValid;
 	}
 
-	let content = <div>{projectData.selectedProjectId}</div>;
+	let content = (
+		<Tasks
+			project={
+				projectData.projects.filter(
+					project => project.title === projectData.selectedProjectId,
+				)[0]
+			}
+			onDeleteProject={handleDeleteProject}
+			onCancelProject={handleCancelProject}
+		/>
+	);
 
 	if (projectData.selectedProjectId === null) {
 		content = (
 			<NewProject
 				ref={newProjectInputRef}
 				onProjectSave={handleNewProjectSubmit}
-				onCancel={handleCancelNewProject}
+				onCancel={handleCancelProject}
 			/>
 		);
 	}
