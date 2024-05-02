@@ -8,6 +8,7 @@ export default function App() {
 	const [projectData, setProjectData] = useState({
 		selectedProjectId: undefined,
 		projects: [],
+		projectTasks: {},
 	});
 	const [valueIsValid, setValueIsValid] = useState(true);
 
@@ -34,6 +35,48 @@ export default function App() {
 				...prevProjectData,
 				selectedProjectId: newProject.title,
 				projects: [...prevProjectData.projects, newProject],
+			};
+		});
+	}
+
+	function handleAddNewTask(task, projectId) {
+		let updatedProjectTasks = [
+			...(projectData.projectTasks[projectId] ?? []),
+		];
+
+		if (updatedProjectTasks) {
+			updatedProjectTasks.push(task);
+		} else {
+			updatedProjectTasks = [task];
+		}
+
+		setProjectData(prevProjectData => {
+			const updatedProjectData = {
+				...prevProjectData,
+				projectTasks: {
+					...prevProjectData.projectTasks,
+					[projectId]: updatedProjectTasks,
+				},
+			};
+
+			return updatedProjectData;
+		});
+	}
+
+	function handleDeleteTask(selectedTask, selectedProjectId) {
+		const selectedProjectTasks =
+			projectData.projectTasks[selectedProjectId];
+		const updatedTaskList = selectedProjectTasks.filter(
+			task => task != selectedTask,
+		);
+
+		setProjectData(prevProjectData => {
+			return {
+				...prevProjectData,
+				projectTasks: {
+					...prevProjectData.projectTasks,
+					[selectedProjectId]: updatedTaskList,
+				},
 			};
 		});
 	}
@@ -67,17 +110,24 @@ export default function App() {
 	}
 
 	function handleDeleteProject(projectId) {
-		// Todo: Add delect confirmation check (modal)
-
-		const updatedProjects = projectData.projects.filter(
-			project => project.title != projectId,
-		);
+		// Todo: Add delete confirmation check (modal)
 
 		setProjectData(prevProjectData => {
+			const updatedProjects = prevProjectData.projects.filter(
+				project => project.title != projectId,
+			);
+
+			const updatedProjectTasks = {
+				...prevProjectData.projectTasks,
+			};
+
+			delete updatedProjectTasks[projectId];
+
 			return {
 				...prevProjectData,
 				selectedProjectId: undefined,
 				projects: updatedProjects,
+				projectTasks: updatedProjectTasks,
 			};
 		});
 	}
@@ -96,13 +146,18 @@ export default function App() {
 
 	let content = (
 		<Tasks
-			project={
+			selectedProject={
 				projectData.projects.filter(
 					project => project.title === projectData.selectedProjectId,
 				)[0]
 			}
+			selectedProjectTasks={
+				projectData.projectTasks[projectData.selectedProjectId]
+			}
 			onDeleteProject={handleDeleteProject}
 			onCancelProject={handleCancelProject}
+			onAddNewTask={handleAddNewTask}
+			onDeleteTask={handleDeleteTask}
 		/>
 	);
 
