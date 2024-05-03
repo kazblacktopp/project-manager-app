@@ -3,6 +3,9 @@ import NoProjectSelected from './components/NoProjectSelected';
 import ProjectsSidebar from './components/ProjectsSidebar';
 import NewProject from './components/NewProject';
 import Tasks from './components/Tasks';
+import ConfirmationModal from './components/ConfirmationModal';
+import { createPortal } from 'react-dom';
+import MessageModal from './components/MessageModal';
 
 export default function App() {
 	const [projectData, setProjectData] = useState({
@@ -10,17 +13,19 @@ export default function App() {
 		projects: [],
 		projectTasks: {},
 	});
-	const [valueIsValid, setValueIsValid] = useState(true);
+	const [itemFlaggedForDeletion, setItemFlaggedForDeletion] = useState(null);
 
 	const newProjectInputRef = useRef(null);
+	const confirmationModalRef = useRef(null);
+	const messageModalRef = useRef(null);
 
 	function handleNewProjectSubmit() {
 		const title = newProjectInputRef.current.title.value;
 		const description = newProjectInputRef.current.description.value;
 		const date = newProjectInputRef.current.date.value;
 
-		if (!validateValueIsValid([title, description, date])) {
-			setValueIsValid(false);
+		if (!validateValue([title, description, date])) {
+			messageModalRef.current.showModal();
 			return;
 		}
 
@@ -40,6 +45,11 @@ export default function App() {
 	}
 
 	function handleAddNewTask(task, projectId) {
+		if (!validateValue([task])) {
+			messageModalRef.current.showModal();
+			return;
+		}
+
 		let updatedProjectTasks = [
 			...(projectData.projectTasks[projectId] ?? []),
 		];
@@ -109,9 +119,19 @@ export default function App() {
 		setValueIsValid(true);
 	}
 
-	function handleDeleteProject(projectId) {
-		// Todo: Add delete confirmation check (modal)
+	function handleDeleteProjectRequest(projectId) {
+		setItemFlaggedForDeletion(projectId);
+		confirmationModalRef.current.showModal();
+	}
 
+	function handleCancelDelete() {
+		setItemFlaggedForDeletion(null);
+		confirmationModalRef.current.close();
+	}
+
+	function handleDeleteProject(projectId) {
+		confirmationModalRef.current.close();
+		setItemFlaggedForDeletion(null);
 		setProjectData(prevProjectData => {
 			const updatedProjects = prevProjectData.projects.filter(
 				project => project.title != projectId,
@@ -132,11 +152,11 @@ export default function App() {
 		});
 	}
 
-	function validateValueIsValid(values) {
+	function validateValue(values) {
 		let isValid = true;
 
 		for (const value of values) {
-			if (value.length < 1) {
+			if (value.trim().length < 1) {
 				isValid = false;
 				break;
 			}
@@ -154,7 +174,7 @@ export default function App() {
 			selectedProjectTasks={
 				projectData.projectTasks[projectData.selectedProjectId]
 			}
-			onDeleteProject={handleDeleteProject}
+			onDeleteProject={handleDeleteProjectRequest}
 			onCancelProject={handleCancelProject}
 			onAddNewTask={handleAddNewTask}
 			onDeleteTask={handleDeleteTask}
@@ -177,15 +197,25 @@ export default function App() {
 
 	return (
 		<main className="h-screen my-8 flex gap-8">
+			{createPortal(
+				<MessageModal ref={messageModalRef} />,
+				document.getElementById('modal-root'),
+			)}
+			{createPortal(
+				<ConfirmationModal
+					ref={confirmationModalRef}
+					itemId={itemFlaggedForDeletion}
+					onDelete={handleDeleteProject}
+					onCancel={handleCancelDelete}
+				/>,
+				document.getElementById('modal-root'),
+			)}
 			<ProjectsSidebar
 				projects={projectData.projects}
 				onAddProject={handleAddNewProject}
 				onSelectProject={handleProjectSelection}
 			/>
 			{content}
-			{!valueIsValid && (
-				<p className="text-red-600">The input is NOT valid!</p>
-			)}
 		</main>
 	);
 }
